@@ -1,0 +1,99 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.3'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.30'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.4.30'
+}
+
+subprojects {
+    group 'com.nikgym'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'java'
+    apply plugin: 'kotlin'
+    apply plugin: 'kotlin-spring'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    repositories {
+        mavenCentral()
+    }
+
+    sourceSets {
+        main.java.srcDirs += "${buildDir}/generated-sources"
+    }
+
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "11"
+        }
+    }
+
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "11"
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    configurations {
+        jaxb
+    }
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter'
+        implementation 'org.springframework.boot:spring-boot-starter-web-services'
+
+        implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+
+        implementation 'org.jetbrains.kotlin:kotlin-reflect'
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+
+        implementation 'wsdl4j:wsdl4j:1.6.3'
+        runtime 'org.glassfish.jaxb:jaxb-runtime:2.3.3'
+
+        jaxb 'org.glassfish.jaxb:jaxb-xjc:2.3.3'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+
+    task jaxb {
+        def targetDir = file("${buildDir}/generated-sources")
+
+        doLast {
+            ant.taskdef(
+                name: 'xjc',
+                classname: 'com.sun.tools.xjc.XJCTask',
+                classpath: configurations.jaxb.asPath
+            )
+
+            targetDir.mkdirs()
+
+            ant.xjc(
+                destdir: "${targetDir}",
+                package: 'com.nikgym.ws',
+                schema: 'src/main/resources/xsd/countries.xsd'
+            )
+        }
+    }
+
+    task compileGenerated(type: JavaCompile) {
+        destinationDirectory = file "$buildDir/generated"
+        source = "$buildDir/generated-sources"
+        classpath = configurations.jaxb
+    }
+
+    compileGenerated.dependsOn jaxb
+    compileKotlin.dependsOn compileGenerated
+}
+
+repositories {
+    mavenCentral()
+}
+
+bootJar {
+    enabled = false
+}

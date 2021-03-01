@@ -1,0 +1,9 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+mainClassName = 'com.nikgym.soapclient.SoapClientApplication.kt'
