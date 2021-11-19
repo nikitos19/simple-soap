@@ -25,7 +25,7 @@ With dependencies everything is ok.
 To use generated Java classes in Kotlin code, it was necessary to add the built generated sources to java sourceSets.
 And now we can use them.
 
-### Application
+## Application
 
 XSD scheme I've taken from popular spring tutorials(it's information about some countries)
 
